@@ -3,7 +3,7 @@ package core
 import (
 	"math/big"
 	"bytes"
-	"simle_blockchain/utils"
+	"bubba_coin/utils"
 	"fmt"
 	"math"
 	"crypto/sha256"

@@ -2,7 +2,7 @@ package core
 
 import (
 	"github.com/boltdb/bolt"
-	"simle_blockchain/utils"
+	"bubba_coin/utils"
 	"errors"
 )
 
@@ -10,6 +10,7 @@ const (
 	dbFile        = "bubba.db"
 	blockBucket   = "blocks"
 	versionBucket = "versions"
+	hashComplexity = 20
 )
 
 type Blockchain struct {
@@ -99,7 +100,7 @@ func (bc *Blockchain) ChangeVersion(newMiningComplexity int) error {
 	return err
 }
 
-func NewBlockchain(initialMiningComplexity int) *Blockchain {
+func NewBlockchain() *Blockchain {
 	var (
 		last        []byte
 		lastVersion int
@@ -115,7 +116,7 @@ func NewBlockchain(initialMiningComplexity int) *Blockchain {
 		v := tx.Bucket([]byte(versionBucket))
 
 		if b == nil {
-			genesisBlock := NewBlock("Genesis block", []byte{}, initialMiningComplexity)
+			genesisBlock := NewBlock("Genesis block", []byte{}, hashComplexity)
 			b, err = tx.CreateBucket([]byte(blockBucket))
 			if err != nil {
 				return err
@@ -137,7 +138,7 @@ func NewBlockchain(initialMiningComplexity int) *Blockchain {
 		if v == nil {
 			versions = make(map[int]int)
 			lastVersion = 0
-			versions[lastVersion] = initialMiningComplexity
+			versions[lastVersion] = hashComplexity
 			v, err = tx.CreateBucket([]byte(versionBucket))
 			if err != nil {
 				return err
@@ -153,6 +154,10 @@ func NewBlockchain(initialMiningComplexity int) *Blockchain {
 		} else {
 			versions = utils.DeserializeMap(v.Get([]byte("v")))
 			lastVersion = utils.DeserializeInt(v.Get([]byte("lv")))
+			if versions[lastVersion] != hashComplexity {
+				lastVersion++
+				versions[lastVersion] = hashComplexity
+			}
 		}
 
 		return nil
